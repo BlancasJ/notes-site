@@ -17,10 +17,21 @@ export const Todos = () => {
   const addHandler = async () => {
     const title = await prompt("Title:","");
     const content = await prompt("Content:","");
-    const data = {'title': title, 'content': content};
-    console.log(data);
-    await fetchRequest.post(data);
-    setTodo(await fetchRequest.get())
+
+    function sendData(title, content){
+      if(title !== null && title.length <= 0) title = null;
+      if(content !== null && content.length <= 0) content = null;
+
+      if(title === null && content !== null) return {'title': 'no title', 'content': content};
+      else if(title !== null && content === null) return {'title': title, 'content': 'no content'};
+      else if(title !== null && content !== null) return {'title': title, 'content': content};
+      return null;
+    }
+    const data = sendData(title, content);
+    if(data !== null){
+      await fetchRequest.post(data);
+      setTodo(await fetchRequest.get());
+    }
   };
 
   // DELETE AN ITEM
@@ -38,13 +49,14 @@ export const Todos = () => {
     }
 
     function checkingData(data, title, content) {
-      if(title !== null && content !== null) {
-        return {'title': title, 'content': content};
-      } else if(title === null && content !== null) {
-        return {'title': data.title , 'content': content};
-      } else if(title !== null && content === null) {
-        return {'title': title, 'content': data.content};
-      }
+      // if the title or content are empty change its value to null
+      if(title !== null && title.length <= 0) title = null;
+      if(content !== null && content.length <= 0) content = null;
+
+      // check the possible cases when editing
+      if(title !== null && content !== null) return {'title': title, 'content': content};
+      else if(title === null && content !== null) return {'title': data.title , 'content': content};
+      else if(title !== null && content === null) return {'title': title, 'content': data.content};
       return {'title': data.title, 'content': data.content};
     };
     
