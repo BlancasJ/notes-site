@@ -1,10 +1,11 @@
 import React, { useState, useEffect} from "react";
 import { fetchRequest } from "../services/fetchRequest.js"
 
-export const Todos = ({ addCondition, deleteCondition, editCondition, callbackAdd, callbackDelete, callbackEdit}) => {
+export const Todos = () => {
   /* REQUEST METHODS */
   // GET ALL
   const [todoItems, setTodo] = useState([]);
+  
   useEffect(() => {
     async function getAllTodo() {
       setTodo(await fetchRequest.get())
@@ -14,8 +15,8 @@ export const Todos = ({ addCondition, deleteCondition, editCondition, callbackAd
 
   // POST NEW DATA
   const addHandler = async () => {
-    const title = prompt("Title:","");
-    const content = prompt("Content:","");
+    const title = await prompt("Title:","");
+    const content = await prompt("Content:","");
     const data = {'title': title, 'content': content};
     console.log(data);
     await fetchRequest.post(data);
@@ -30,51 +31,65 @@ export const Todos = ({ addCondition, deleteCondition, editCondition, callbackAd
 
   // EDIT AN ITEM
   const editHandler = async (id) => {
-    const title = prompt("New Title:","")
-    const content = prompt("New Content:","");
+    const title = await prompt("New Title:","")
+    const content = await prompt("New Content:","");
     if(id === null){
       return;
     }
 
-    function checkingData(data) {
-      let data2update;
-      if(title === null) {
-        data2update = {'title': data.title ,'content': content};
-      } else if(content === null) {
-        data2update = {'title': title, 'content': data.content};
-      } else {
-        data2update = {'title': title, 'content': content};
+    function checkingData(data, title, content) {
+      if(title !== null && content !== null) {
+        return {'title': title, 'content': content};
+      } else if(title === null && content !== null) {
+        return {'title': data.title , 'content': content};
+      } else if(title !== null && content === null) {
+        return {'title': title, 'content': data.content};
       }
-      return data2update;
+      return {'title': data.title, 'content': data.content};
     };
-
+    
     const data = await fetchRequest.getById(id);
-    const newData = checkingData(data);
+    const newData = checkingData(data, title, content);
     await fetchRequest.editItem(id, newData);
     setTodo(await fetchRequest.get())
     //console.log(data);
 
   };
 
+  const [deleteBool, setDeleteBool] = useState(false);
+  const [editBool, setEditBool] = useState(false);
+
+  const handlerDelete = (val) => setDeleteBool(val);
+  const handlerEdit = (val) => setEditBool(val);
+
   const handlerToDo = (id) => {
-    if(addCondition && !deleteCondition && !editCondition){
-      addHandler();
-      callbackAdd(false);
-    } else if(editCondition && !deleteCondition && !addCondition){
+    if(editBool && !deleteBool){
       editHandler(id);
-      callbackEdit(false);
-    } else if(deleteCondition && !addCondition && !editCondition){
+      handlerEdit(false);
+    } else if(deleteBool && !editBool){
       deleteHandler(id);
-      callbackDelete(false);
+      handlerDelete(false);
     }
   };
 
   return (
     <React.Fragment>
-      {todoItems.map( ({id, title, content}, index) => {
-        //console.log(id);
-        return <li key={index} id={`note-${id}`} className='todo' onClick={() => handlerToDo(id)}><b>{title}</b>: {content}</li>
-      })}
+      <aside className="asidec">
+        <div className="flexFather">
+          <h1 className="toolBarTitle">Tool Bar</h1>
+          <button id="add" className="toolBarbutton" onClick={addHandler}>Add</button>
+          <button id="delete" className="toolBarbutton" onClick={() => handlerDelete(true)}>Remove</button>
+          <button id="edit" className="toolBarbutton" onClick={() => handlerEdit(true)}>Edit</button>
+        </div>
+      </aside>
+      <section className="sectionc">
+        <ul id="postItContainer" className="sectionToDo flexFather">
+          {todoItems.map( ({id, title, content}, index) => {
+            //console.log(id);
+            return <li key={index} id={`note-${id}`} className='todo' onClick={() => handlerToDo(id)}><b>{title}</b>: {content}</li>
+          })}
+        </ul>
+      </section>  
     </React.Fragment>
   );
 }
