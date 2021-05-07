@@ -1,4 +1,4 @@
-const REQUEST_URL = 'http://3.19.104.69//api/postIt';
+const REQUEST_URL = 'http://3.19.104.69/api/postIt';
 
 export const fetchRequest = {
   get: () => {
